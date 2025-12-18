@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Canavieiro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+            <button id="close-menu">&times;</button>
+        </div>
+        <ul>
+            <li><a href="#">Novo Checklist</a></li>
+            <li><a href="#">Histórico</a></li>
+            <li><a href="#">Configurações</a></li>
+        </ul>
+    </nav>
+
+    <header>
+        <button id="menu-toggle">☰</button>
+        <h1>Checklist Caminhão</h1>
+    </header>
+
+    <main>
+        <form id="checklist-form">
+            <div id="questions-container">
+                </div>
+
+            <div class="status-container">
+                <h3>Status Final:</h3>
+                <div id="status-badge" class="badge badge-liberado">Liberado</div>
+            </div>
+
+            <button type="submit" class="btn-send">Finalizar Inspeção</button>
+        </form>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
