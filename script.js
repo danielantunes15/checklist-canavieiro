@@ -25,21 +25,37 @@ function showScreen(screenId) {
     lucide.createIcons();
 }
 
+// Lógica do Modal Moderno
 function iniciarChecklist(placa) {
     const veiculo = caminhoes.find(c => c.placa === placa);
-    const ultimoTecnico = veiculo.ultimoTecnico || "Sem registo";
-    const ultimaData = veiculo.dataUltimaVistoria || "Sem registo";
+    const ultimoTecnico = veiculo.ultimoTecnico || "Sem registro";
+    const ultimaData = veiculo.dataUltimaVistoria || "Sem registro";
 
-    const mensagem = `Deseja iniciar um novo checklist para o veículo ${placa}?\n\n` +
-                     `Última Inspeção: ${ultimaData}\n` +
-                     `Técnico Responsável: ${ultimoTecnico}`;
+    const modal = document.getElementById('modal-confirm');
+    const modalBody = document.getElementById('modal-body');
+    const btnConfirm = document.getElementById('btn-modal-confirm');
 
-    if (confirm(mensagem)) {
+    modalBody.innerHTML = `
+        <p>Deseja iniciar inspeção no veículo <b>${placa}</b>?</p>
+        <div class="modal-info-box">
+            <small>Última: ${ultimaData}</small><br>
+            <small>Responsável: ${ultimoTecnico}</small>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+
+    btnConfirm.onclick = () => {
         const select = document.getElementById('select-veiculo-checklist');
         select.value = placa;
+        closeModal();
         showScreen('home');
         window.scrollTo(0,0);
-    }
+    };
+}
+
+function closeModal() {
+    document.getElementById('modal-confirm').style.display = 'none';
 }
 
 function togglePlacasExtras() {
@@ -143,7 +159,7 @@ function renderFrota() {
                     <div class="veiculo-info">
                         <b>${v.placa}</b>
                         <span>${v.descricao}</span>
-                        ${v.dataUltimaVistoria ? `<div class="historico-mini">${v.dataUltimaVistoria} | ${v.ultimoTecnico}</div>` : ''}
+                        ${v.dataUltimaVistoria ? `<div class="historico-mini">${v.dataUltimaVistoria}</div>` : ''}
                     </div>
                     <span class="badge ${css}">${v.status === 'AGUARDANDO' ? 'PENDENTE' : v.status}</span>
                 </div>`;
