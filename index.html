@@ -61,7 +61,20 @@
 
             <div class="form-group">
                 <label>Novo Caminhão</label>
-                <input type="text" id="placa-caminhao" placeholder="Placa (ABC1D23)">
+                <input type="text" id="desc-caminhao" placeholder="Descrição (Ex: Volvo FH 540)">
+                <select id="tipo-caminhao" onchange="togglePlacasExtras()">
+                    <option value="Simples">Caminhão Simples (1 Placa)</option>
+                    <option value="Rodotrem">Rodotrem (3 Placas)</option>
+                    <option value="Treminhão">Treminhão (3 Placas)</option>
+                </select>
+                
+                <input type="text" id="placa-caminhao" placeholder="Placa do Cavalo/Caminhão">
+                
+                <div id="campos-placas-extras" style="display:none; flex-direction: column; gap: 8px;">
+                    <input type="text" id="placa-reboque-1" placeholder="Placa Reboque 1">
+                    <input type="text" id="placa-reboque-2" placeholder="Placa Reboque 2">
+                </div>
+
                 <select id="select-empresa-cadastro">
                     <option value="">Selecione a Empresa</option>
                 </select>
@@ -72,7 +85,6 @@
         <section id="screen-frota" class="screen" style="display:none;">
             <div class="screen-header">
                 <h2>Minha Frota</h2>
-                <p>Status por empresa</p>
             </div>
             <div id="frota-container"></div>
         </section>
