@@ -1,66 +1,72 @@
 lucide.createIcons();
 
 const Storage = {
-    get: (key) => JSON.parse(localStorage.getItem(key)) || [],
+    get: (key, defaultVal = []) => JSON.parse(localStorage.getItem(key)) || defaultVal,
     set: (key, data) => localStorage.setItem(key, JSON.stringify(data))
 };
 
 let empresas = Storage.get('ssma_empresas');
 let caminhoes = Storage.get('ssma_caminhoes');
-
-const perguntas = [
+let perguntas = Storage.get('ssma_perguntas', [
     "Sistema de Freios", "Iluminação/Sinalização", "Condição Pneus", 
     "Nível de Fluidos", "Itens de Segurança", "Vazamentos"
-];
+]);
 
-renderQuestions();
-atualizarSelects();
-renderFrota();
+// --- NAVEGAÇÃO ---
+
+document.getElementById('btn-cadastro-toggle').onclick = (e) => {
+    e.stopPropagation();
+    document.getElementById('submenu-cadastro').classList.toggle('active');
+};
+
+document.onclick = () => document.getElementById('submenu-cadastro').classList.remove('active');
 
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.getElementById('screen-' + screenId).style.display = 'block';
+    document.getElementById('submenu-cadastro').classList.remove('active');
+    
     document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('nav-' + screenId).classList.add('active');
+    
+    if(screenId.startsWith('cad-')) {
+        document.getElementById('btn-cadastro-toggle').classList.add('active');
+    } else {
+        const activeNav = document.getElementById('nav-' + screenId);
+        if(activeNav) activeNav.classList.add('active');
+    }
+
+    if(screenId === 'home') renderQuestions();
+    if(screenId === 'cad-perguntas') renderListaPerguntas();
+    if(screenId === 'cad-empresas') renderListaEmpresas();
+    if(screenId === 'frota') renderFrota();
+    
     lucide.createIcons();
 }
 
-// Lógica do Modal Moderno
-function iniciarChecklist(placa) {
-    const veiculo = caminhoes.find(c => c.placa === placa);
-    const ultimoTecnico = veiculo.ultimoTecnico || "Sem registro";
-    const ultimaData = veiculo.dataUltimaVistoria || "Sem registro";
+// --- LOGICA DE DADOS ---
 
-    const modal = document.getElementById('modal-confirm');
-    const modalBody = document.getElementById('modal-body');
-    const btnConfirm = document.getElementById('btn-modal-confirm');
-
-    modalBody.innerHTML = `
-        <p>Deseja iniciar inspeção no veículo <b>${placa}</b>?</p>
-        <div class="modal-info-box">
-            <small>Última: ${ultimaData}</small><br>
-            <small>Responsável: ${ultimoTecnico}</small>
-        </div>
-    `;
-
-    modal.style.display = 'flex';
-
-    btnConfirm.onclick = () => {
-        const select = document.getElementById('select-veiculo-checklist');
-        select.value = placa;
-        closeModal();
-        showScreen('home');
-        window.scrollTo(0,0);
-    };
+function cadastrarPergunta() {
+    const txt = document.getElementById('nova-pergunta').value.trim();
+    if(!txt) return;
+    perguntas.push(txt);
+    Storage.set('ssma_perguntas', perguntas);
+    document.getElementById('nova-pergunta').value = "";
+    renderListaPerguntas();
 }
 
-function closeModal() {
-    document.getElementById('modal-confirm').style.display = 'none';
+function renderListaPerguntas() {
+    const container = document.getElementById('lista-perguntas-edit');
+    container.innerHTML = perguntas.map((p, i) => `
+        <div class="veiculo-item"><span>${p}</span>
+        <button onclick="removerPergunta(${i})" class="btn-delete"><i data-lucide="trash-2"></i></button></div>
+    `).join('');
+    lucide.createIcons();
 }
 
-function togglePlacasExtras() {
-    const tipo = document.getElementById('tipo-caminhao').value;
-    document.getElementById('campos-placas-extras').style.display = (tipo !== 'Simples') ? 'flex' : 'none';
+function removerPergunta(i) {
+    perguntas.splice(i, 1);
+    Storage.set('ssma_perguntas', perguntas);
+    renderListaPerguntas();
 }
 
 function cadastrarEmpresa() {
@@ -69,29 +75,39 @@ function cadastrarEmpresa() {
     empresas.push(nome);
     Storage.set('ssma_empresas', empresas);
     document.getElementById('nome-empresa').value = "";
+    renderListaEmpresas();
     atualizarSelects();
-    alert("Unidade salva!");
+}
+
+function renderListaEmpresas() {
+    const container = document.getElementById('lista-empresas-edit');
+    container.innerHTML = empresas.map((e, i) => `
+        <div class="veiculo-item"><span>${e}</span>
+        <button onclick="removerEmpresa(${i})" class="btn-delete"><i data-lucide="trash-2"></i></button></div>
+    `).join('');
+    lucide.createIcons();
+}
+
+function removerEmpresa(i) {
+    empresas.splice(i, 1);
+    Storage.set('ssma_empresas', empresas);
+    renderListaEmpresas();
+    atualizarSelects();
 }
 
 function cadastrarCaminhao() {
-    const desc = document.getElementById('desc-caminhao').value;
-    const placa = document.getElementById('placa-caminhao').value.toUpperCase();
+    const placa = document.getElementById('placa-caminhao').value.toUpperCase().trim();
     const empresa = document.getElementById('select-empresa-cadastro').value;
-
-    if (!placa || !empresa) return alert("Placa e Unidade são obrigatórios");
+    if (!placa || !empresa) return alert("Preencha placa e unidade");
 
     caminhoes.push({
-        placa, descricao: desc, empresa, status: 'AGUARDANDO',
-        tipo: document.getElementById('tipo-caminhao').value,
-        placasExtras: [document.getElementById('placa-reboque-1').value, document.getElementById('placa-reboque-2').value],
-        dataUltimaVistoria: '',
-        ultimoTecnico: ''
+        placa, empresa, status: 'AGUARDANDO',
+        descricao: document.getElementById('desc-caminhao').value,
+        dataUltimaVistoria: '', ultimoTecnico: ''
     });
-    
     Storage.set('ssma_caminhoes', caminhoes);
     atualizarSelects();
-    renderFrota();
-    alert("Veículo cadastrado!");
+    alert("Caminhão salvo!");
 }
 
 function renderQuestions() {
@@ -111,40 +127,9 @@ function renderQuestions() {
     });
 }
 
-document.getElementById('checklist-form').addEventListener('change', () => {
-    const ncs = document.querySelectorAll('input[value="NC"]:checked').length;
-    const badge = document.getElementById('status-badge');
-    badge.textContent = ncs > 0 ? "BLOQUEADO" : "LIBERADO";
-    badge.className = ncs > 0 ? "badge badge-bloqueado" : "badge badge-liberado";
-});
-
-document.getElementById('checklist-form').onsubmit = (e) => {
-    e.preventDefault();
-    const placa = document.getElementById('select-veiculo-checklist').value;
-    if (!placa) return alert("Selecione um veículo");
-
-    const ncs = document.querySelectorAll('input[value="NC"]:checked').length;
-    const res = ncs > 0 ? "BLOQUEADO" : "LIBERADO";
-    const idx = caminhoes.findIndex(c => c.placa === placa);
-
-    if (idx !== -1) {
-        caminhoes[idx].status = res;
-        caminhoes[idx].dataUltimaVistoria = new Date().toLocaleString('pt-BR');
-        caminhoes[idx].ultimoTecnico = "TÉCNICO BEL";
-        
-        Storage.set('ssma_caminhoes', caminhoes);
-        renderFrota();
-        alert("Status Atualizado!");
-        e.target.reset();
-        document.getElementById('status-badge').className = "badge badge-pendente";
-        document.getElementById('status-badge').textContent = "AGUARDANDO";
-        showScreen('frota');
-    }
-};
-
 function renderFrota() {
     const container = document.getElementById('frota-container');
-    const busca = document.getElementById('search-frota').value.toLowerCase();
+    const busca = document.getElementById('search-frota')?.value.toLowerCase() || "";
     container.innerHTML = "";
 
     empresas.forEach(emp => {
@@ -168,11 +153,56 @@ function renderFrota() {
     });
 }
 
+function iniciarChecklist(placa) {
+    const v = caminhoes.find(c => c.placa === placa);
+    document.getElementById('modal-body').innerHTML = `
+        <h3>Nova Inspeção</h3>
+        <p>Veículo: <b>${placa}</b></p>
+        <div class="modal-info-box">Última: ${v.dataUltimaVistoria || 'Nenhuma'}<br>Responsável: ${v.ultimoTecnico || 'BEL'}</div>
+    `;
+    document.getElementById('modal-confirm').style.display = 'flex';
+    document.getElementById('btn-modal-confirm').onclick = () => {
+        document.getElementById('select-veiculo-checklist').value = placa;
+        closeModal();
+        showScreen('home');
+    };
+}
+
+function closeModal() { document.getElementById('modal-confirm').style.display = 'none'; }
+
+document.getElementById('checklist-form').onsubmit = (e) => {
+    e.preventDefault();
+    const placa = document.getElementById('select-veiculo-checklist').value;
+    if (!placa) return alert("Selecione um veículo");
+
+    const ncs = document.querySelectorAll('input[value="NC"]:checked').length;
+    const res = ncs > 0 ? "BLOQUEADO" : "LIBERADO";
+    const idx = caminhoes.findIndex(c => c.placa === placa);
+
+    if (idx !== -1) {
+        caminhoes[idx].status = res;
+        caminhoes[idx].dataUltimaVistoria = new Date().toLocaleString('pt-BR');
+        caminhoes[idx].ultimoTecnico = "TÉCNICO BEL";
+        Storage.set('ssma_caminhoes', caminhoes);
+        alert("Status Atualizado!");
+        e.target.reset();
+        showScreen('frota');
+    }
+};
+
 function atualizarSelects() {
     const sE = document.getElementById('select-empresa-cadastro');
     const sV = document.getElementById('select-veiculo-checklist');
-    sE.innerHTML = '<option value="">Selecione a Unidade</option>';
-    empresas.forEach(e => sE.innerHTML += `<option value="${e}">${e}</option>`);
-    sV.innerHTML = '<option value="">Selecione o Veículo...</option>';
-    caminhoes.forEach(c => sV.innerHTML += `<option value="${c.placa}">${c.placa}</option>`);
+    if(sE) {
+        sE.innerHTML = '<option value="">Unidade...</option>';
+        empresas.forEach(e => sE.innerHTML += `<option value="${e}">${e}</option>`);
+    }
+    if(sV) {
+        sV.innerHTML = '<option value="">Selecione o Veículo...</option>';
+        caminhoes.forEach(c => sV.innerHTML += `<option value="${c.placa}">${c.placa}</option>`);
+    }
 }
+
+atualizarSelects();
+renderFrota();
+renderQuestions();
