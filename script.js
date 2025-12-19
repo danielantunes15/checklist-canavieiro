@@ -1,13 +1,8 @@
 lucide.createIcons();
 
-// Perguntas padrão para o sistema
 const perguntasPadrao = [
-    "Sistema de Freios", 
-    "Iluminação/Sinalização", 
-    "Condição dos Pneus", 
-    "Nível de Fluidos", 
-    "Itens de Segurança", 
-    "Vazamentos Visíveis"
+    "Sistema de Freios", "Iluminação/Sinalização", "Condição dos Pneus", 
+    "Nível de Fluidos", "Itens de Segurança", "Vazamentos Visíveis"
 ];
 
 const Storage = {
@@ -15,12 +10,10 @@ const Storage = {
     set: (key, data) => localStorage.setItem(key, JSON.stringify(data))
 };
 
-// Carrega dados ou usa os padrões
 let empresas = Storage.get('ssma_empresas');
 let caminhoes = Storage.get('ssma_caminhoes');
 let perguntas = Storage.get('ssma_perguntas');
 
-// Se não houver perguntas salvas, carrega as pré-definidas
 if (perguntas.length === 0) {
     perguntas = [...perguntasPadrao];
     Storage.set('ssma_perguntas', perguntas);
@@ -139,6 +132,19 @@ function renderQuestions() {
     });
 }
 
+// LOGICA DE STATUS AUTOMÁTICO
+document.getElementById('checklist-form').addEventListener('change', () => {
+    const ncs = document.querySelectorAll('input[value="NC"]:checked').length;
+    const badge = document.getElementById('status-badge');
+    if (ncs > 0) {
+        badge.textContent = "BLOQUEADO";
+        badge.className = "badge badge-bloqueado";
+    } else {
+        badge.textContent = "LIBERADO";
+        badge.className = "badge badge-liberado";
+    }
+});
+
 function renderFrota() {
     const container = document.getElementById('frota-container');
     const busca = document.getElementById('search-frota')?.value.toLowerCase() || "";
@@ -196,8 +202,10 @@ document.getElementById('checklist-form').onsubmit = (e) => {
         caminhoes[idx].dataUltimaVistoria = new Date().toLocaleString('pt-BR');
         caminhoes[idx].ultimoTecnico = "TÉCNICO BEL";
         Storage.set('ssma_caminhoes', caminhoes);
-        alert("Status Atualizado!");
+        alert("Inspeção Registrada!");
         e.target.reset();
+        document.getElementById('status-badge').className = "badge badge-pendente";
+        document.getElementById('status-badge').textContent = "AGUARDANDO";
         showScreen('frota');
     }
 };
@@ -215,7 +223,6 @@ function atualizarSelects() {
     }
 }
 
-// Inicialização total
 atualizarSelects();
 renderFrota();
 renderQuestions();

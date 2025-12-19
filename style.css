@@ -37,7 +37,6 @@ header { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); padding
 
 .nav-item-wrapper { position: relative; flex: 1; display: flex; justify-content: center; }
 
-/* SUBMENU */
 .submenu-pop { 
     position: absolute; bottom: 90px; background: var(--surface); 
     border: 1px solid var(--glass); border-radius: 15px; width: 140px; 
@@ -76,9 +75,9 @@ input[type="radio"] { display: none; }
 
 .form-group { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
 input, select, textarea { background: var(--bg); border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; width: 100%; }
-.btn-primary { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin: 15px; width: calc(100% - 30px); }
-.btn-secondary { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 10px; }
-.btn-delete { background: none; border: none; color: var(--danger); }
+.btn-primary { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin: 15px; width: calc(100% - 30px); cursor: pointer; }
+.btn-secondary { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; }
+.btn-delete { background: none; border: none; color: var(--danger); cursor: pointer; }
 .modal-footer { display: flex; gap: 10px; }
-.btn-modal-confirm { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; flex: 1; }
-.btn-modal-cancel { background: none; border: 1px solid #334155; color: white; padding: 10px 20px; border-radius: 8px; flex: 1; }
+.btn-modal-confirm { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; flex: 1; cursor: pointer; }
+.btn-modal-cancel { background: none; border: 1px solid #334155; color: white; padding: 10px 20px; border-radius: 8px; flex: 1; cursor: pointer; }
