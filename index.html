@@ -13,7 +13,10 @@
     <header>
         <div class="header-content">
             <span class="logo">SSMA - <b>BEL</b></span>
-            <div class="user-badge" id="btn-config-user"><i data-lucide="user"></i> <span id="display-name">TÉCNICO BEL</span></div>
+            <div class="user-badge" id="btn-config-user">
+                <i data-lucide="user"></i> 
+                <span id="display-name">TÉCNICO BEL</span>
+            </div>
         </div>
     </header>
 
@@ -42,7 +45,7 @@
         <section id="screen-frota" class="screen" style="display:none;">
             <div class="screen-header" style="padding: 15px;">
                 <h2 style="margin-bottom: 10px;">Frota</h2>
-                <input type="text" id="search-frota" placeholder="Buscar placa..." onkeyup="renderFrota()">
+                <input type="text" id="search-frota" placeholder="Buscar placa..." onkeyup="UI.renderFrota()">
             </div>
             <div id="frota-container"></div>
         </section>
@@ -51,7 +54,7 @@
             <div class="screen-header" style="padding: 15px;"><h2>Unidades</h2></div>
             <div class="form-group">
                 <input type="text" id="nome-empresa" placeholder="Nome da Unidade">
-                <button class="btn-secondary" onclick="cadastrarEmpresa()">Salvar</button>
+                <button class="btn-secondary" onclick="App.cadastrarEmpresa()">Salvar</button>
             </div>
             <div id="lista-empresas-edit"></div>
         </section>
@@ -62,7 +65,7 @@
                 <input type="text" id="desc-caminhao" placeholder="Modelo (ex: Volvo)">
                 <input type="text" id="placa-caminhao" placeholder="Placa">
                 <select id="select-empresa-cadastro"></select>
-                <button class="btn-secondary" onclick="cadastrarCaminhao()">Salvar</button>
+                <button class="btn-secondary" onclick="App.cadastrarCaminhao()">Salvar</button>
             </div>
         </section>
 
@@ -70,7 +73,11 @@
             <div class="screen-header" style="padding: 15px;"><h2>Perguntas</h2></div>
             <div class="form-group">
                 <input type="text" id="nova-pergunta" placeholder="Novo item...">
-                <button class="btn-secondary" onclick="cadastrarPergunta()">Adicionar</button>
+                <div class="check-group" style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); margin: 5px 0;">
+                    <input type="checkbox" id="pergunta-obrigatoria" checked style="width: auto;">
+                    <label for="pergunta-obrigatoria">Resposta Obrigatória?</label>
+                </div>
+                <button class="btn-secondary" onclick="App.cadastrarPergunta()">Adicionar</button>
             </div>
             <div id="lista-perguntas-edit"></div>
         </section>
@@ -80,7 +87,7 @@
             <div class="form-group">
                 <label>Nome do Técnico</label>
                 <input type="text" id="input-tech-name" placeholder="Seu Nome">
-                <button class="btn-primary" onclick="salvarPerfil()" style="margin: 10px 0; width: 100%;">Atualizar Nome</button>
+                <button class="btn-primary" onclick="App.salvarPerfil()" style="margin: 10px 0; width: 100%;">Atualizar Nome</button>
             </div>
         </section>
     </main>
@@ -89,38 +96,40 @@
         <div class="modal-content">
             <div id="modal-body"></div>
             <div class="modal-footer">
-                <button class="btn-modal-cancel" onclick="closeModal()">Sair</button>
+                <button class="btn-modal-cancel" onclick="UI.closeModal()">Sair</button>
                 <button id="btn-modal-confirm" class="btn-modal-confirm">Iniciar</button>
             </div>
         </div>
     </div>
 
     <footer class="bottom-nav">
-        <button class="nav-item active" id="nav-home" onclick="showScreen('home')">
+        <button class="nav-item active" id="nav-home" onclick="UI.showScreen('home')">
             <i data-lucide="clipboard-check"></i>
             <span>Checklist</span>
         </button>
         <div class="nav-item-wrapper">
             <div id="submenu-cadastro" class="submenu-pop">
-                <button onclick="showScreen('cad-empresas')">Empresas</button>
-                <button onclick="showScreen('cad-veiculos')">Veículos</button>
-                <button onclick="showScreen('cad-perguntas')">Perguntas</button>
+                <button onclick="UI.showScreen('cad-empresas')">Empresas</button>
+                <button onclick="UI.showScreen('cad-veiculos')">Veículos</button>
+                <button onclick="UI.showScreen('cad-perguntas')">Perguntas</button>
             </div>
             <button class="nav-item" id="btn-cadastro-toggle">
                 <i data-lucide="plus-circle"></i>
                 <span>Cadastro</span>
             </button>
         </div>
-        <button class="nav-item" id="nav-frota" onclick="showScreen('frota')">
+        <button class="nav-item" id="nav-frota" onclick="UI.showScreen('frota')">
             <i data-lucide="truck"></i>
             <span>Frota</span>
         </button>
-        <button class="nav-item" id="nav-config" onclick="showScreen('config')">
+        <button class="nav-item" id="nav-config" onclick="UI.showScreen('config')">
             <i data-lucide="settings"></i>
             <span>Config</span>
         </button>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="storage.js"></script>
+    <script src="ui.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
