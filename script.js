@@ -1,91 +1,96 @@
 lucide.createIcons();
 
-let empresas = JSON.parse(localStorage.getItem('biocheck_empresas')) || [];
-let caminhoes = JSON.parse(localStorage.getItem('biocheck_caminhoes')) || [];
+const Storage = {
+    get: (key) => JSON.parse(localStorage.getItem(key)) || [],
+    set: (key, data) => localStorage.setItem(key, JSON.stringify(data))
+};
+
+let empresas = Storage.get('ssma_empresas');
+let caminhoes = Storage.get('ssma_caminhoes');
 
 const perguntas = [
-    "Sistema de Freios", "Iluminação/Sinalização", "Condição dos Pneus", 
-    "Nível de Fluidos", "Itens de Segurança", "Vazamentos Visíveis"
+    "Sistema de Freios", "Iluminação/Sinalização", "Condição Pneus", 
+    "Nível de Fluidos", "Itens de Segurança", "Vazamentos"
 ];
 
-// Inicialização
 renderQuestions();
 atualizarSelects();
 renderFrota();
 
-// --- LÓGICA DE CADASTRO ---
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    document.getElementById('screen-' + screenId).style.display = 'block';
+    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('nav-' + screenId).classList.add('active');
+    lucide.createIcons();
+}
 
-// Exibe/Oculta campos de placas extras baseado no tipo
+function iniciarChecklist(placa) {
+    const veiculo = caminhoes.find(c => c.placa === placa);
+    const ultimoTecnico = veiculo.ultimoTecnico || "Sem registo";
+    const ultimaData = veiculo.dataUltimaVistoria || "Sem registo";
+
+    const mensagem = `Deseja iniciar um novo checklist para o veículo ${placa}?\n\n` +
+                     `Última Inspeção: ${ultimaData}\n` +
+                     `Técnico Responsável: ${ultimoTecnico}`;
+
+    if (confirm(mensagem)) {
+        const select = document.getElementById('select-veiculo-checklist');
+        select.value = placa;
+        showScreen('home');
+        window.scrollTo(0,0);
+    }
+}
+
 function togglePlacasExtras() {
     const tipo = document.getElementById('tipo-caminhao').value;
-    const containerExtras = document.getElementById('campos-placas-extras');
-    
-    if (tipo === 'Rodotrem' || tipo === 'Treminhão') {
-        containerExtras.style.display = 'flex';
-    } else {
-        containerExtras.style.display = 'none';
-    }
+    document.getElementById('campos-placas-extras').style.display = (tipo !== 'Simples') ? 'flex' : 'none';
 }
 
 function cadastrarEmpresa() {
     const nome = document.getElementById('nome-empresa').value.trim();
-    if (!nome) return alert("Digite o nome da empresa");
+    if (!nome) return;
     empresas.push(nome);
-    localStorage.setItem('biocheck_empresas', JSON.stringify(empresas));
+    Storage.set('ssma_empresas', empresas);
     document.getElementById('nome-empresa').value = "";
     atualizarSelects();
-    alert("Empresa salva!");
+    alert("Unidade salva!");
 }
 
 function cadastrarCaminhao() {
-    const descricao = document.getElementById('desc-caminhao').value.trim();
-    const tipo = document.getElementById('tipo-caminhao').value;
-    const placaPrincipal = document.getElementById('placa-caminhao').value.toUpperCase().trim();
-    const placaR1 = document.getElementById('placa-reboque-1').value.toUpperCase().trim();
-    const placaR2 = document.getElementById('placa-reboque-2').value.toUpperCase().trim();
+    const desc = document.getElementById('desc-caminhao').value;
+    const placa = document.getElementById('placa-caminhao').value.toUpperCase();
     const empresa = document.getElementById('select-empresa-cadastro').value;
-    
-    if (!placaPrincipal || !empresa || !descricao) return alert("Preencha descrição, placa e empresa!");
 
-    const novoVeiculo = {
-        descricao,
-        tipo,
-        placa: placaPrincipal,
-        placasExtras: (tipo !== 'Simples') ? [placaR1, placaR2] : [],
-        empresa,
-        status: 'AGUARDANDO'
-    };
+    if (!placa || !empresa) return alert("Placa e Unidade são obrigatórios");
+
+    caminhoes.push({
+        placa, descricao: desc, empresa, status: 'AGUARDANDO',
+        tipo: document.getElementById('tipo-caminhao').value,
+        placasExtras: [document.getElementById('placa-reboque-1').value, document.getElementById('placa-reboque-2').value],
+        dataUltimaVistoria: '',
+        ultimoTecnico: ''
+    });
     
-    caminhoes.push(novoVeiculo);
-    localStorage.setItem('biocheck_caminhoes', JSON.stringify(caminhoes));
-    
-    // Limpar campos
-    document.getElementById('desc-caminhao').value = "";
-    document.getElementById('placa-caminhao').value = "";
-    document.getElementById('placa-reboque-1').value = "";
-    document.getElementById('placa-reboque-2').value = "";
-    
+    Storage.set('ssma_caminhoes', caminhoes);
     atualizarSelects();
     renderFrota();
-    alert(`Veículo ${tipo} cadastrado com sucesso!`);
+    alert("Veículo cadastrado!");
 }
 
-// --- CHECKLIST ---
 function renderQuestions() {
     const container = document.getElementById('questions-container');
     container.innerHTML = "";
     perguntas.forEach((p, i) => {
         const div = document.createElement('div');
         div.className = 'question-card';
-        div.innerHTML = `
-            <p><strong>${p}</strong></p>
+        div.innerHTML = `<p><strong>${p}</strong></p>
             <div class="options">
                 <input type="radio" name="q${i}" id="q${i}c" value="C" checked>
                 <label for="q${i}c" class="lbl-c">Conforme</label>
                 <input type="radio" name="q${i}" id="q${i}nc" value="NC">
                 <label for="q${i}nc" class="lbl-nc">Não Conf.</label>
-            </div>
-        `;
+            </div>`;
         container.appendChild(div);
     });
 }
@@ -99,75 +104,59 @@ document.getElementById('checklist-form').addEventListener('change', () => {
 
 document.getElementById('checklist-form').onsubmit = (e) => {
     e.preventDefault();
-    const placaSelecionada = document.getElementById('select-veiculo-checklist').value;
-    if (!placaSelecionada) return alert("Selecione um veículo!");
+    const placa = document.getElementById('select-veiculo-checklist').value;
+    if (!placa) return alert("Selecione um veículo");
 
     const ncs = document.querySelectorAll('input[value="NC"]:checked').length;
-    const resultado = ncs > 0 ? "BLOQUEADO" : "LIBERADO";
+    const res = ncs > 0 ? "BLOQUEADO" : "LIBERADO";
+    const idx = caminhoes.findIndex(c => c.placa === placa);
 
-    const index = caminhoes.findIndex(c => c.placa === placaSelecionada);
-    if (index !== -1) {
-        caminhoes[index].status = resultado;
-        localStorage.setItem('biocheck_caminhoes', JSON.stringify(caminhoes));
+    if (idx !== -1) {
+        caminhoes[idx].status = res;
+        caminhoes[idx].dataUltimaVistoria = new Date().toLocaleString('pt-BR');
+        caminhoes[idx].ultimoTecnico = "TÉCNICO BEL";
+        
+        Storage.set('ssma_caminhoes', caminhoes);
         renderFrota();
-        alert("Status atualizado!");
+        alert("Status Atualizado!");
         e.target.reset();
         document.getElementById('status-badge').className = "badge badge-pendente";
         document.getElementById('status-badge').textContent = "AGUARDANDO";
+        showScreen('frota');
     }
 };
 
-// --- INTERFACE ---
 function renderFrota() {
     const container = document.getElementById('frota-container');
+    const busca = document.getElementById('search-frota').value.toLowerCase();
     container.innerHTML = "";
 
     empresas.forEach(emp => {
-        const veiculos = caminhoes.filter(c => c.empresa === emp);
-        if (veiculos.length === 0) return;
+        const vels = caminhoes.filter(c => c.empresa === emp && c.placa.toLowerCase().includes(busca));
+        if (vels.length === 0) return;
 
         let html = `<div class="empresa-group"><span class="empresa-title">${emp}</span>`;
-        veiculos.forEach(v => {
-            let statusClass = v.status === 'LIBERADO' ? 'badge-liberado' : (v.status === 'BLOQUEADO' ? 'badge-bloqueado' : 'badge-pendente');
-            
-            // Texto das placas extras se houver
-            let placasExtrasTexto = v.placasExtras && v.placasExtras.length > 0 
-                ? `<span class="placas-container">Reboques: ${v.placasExtras.join(' | ')}</span>` 
-                : '';
-
+        vels.forEach(v => {
+            const css = v.status === 'LIBERADO' ? 'badge-liberado' : (v.status === 'BLOQUEADO' ? 'badge-bloqueado' : 'badge-pendente');
             html += `
-                <div class="veiculo-item">
+                <div class="veiculo-item action-card" onclick="iniciarChecklist('${v.placa}')">
                     <div class="veiculo-info">
                         <b>${v.placa}</b>
-                        <small>${v.descricao} (${v.tipo})</small>
-                        ${placasExtrasTexto}
+                        <span>${v.descricao}</span>
+                        ${v.dataUltimaVistoria ? `<div class="historico-mini">${v.dataUltimaVistoria} | ${v.ultimoTecnico}</div>` : ''}
                     </div>
-                    <span class="badge ${statusClass}">${v.status === 'AGUARDANDO' ? 'PENDENTE' : v.status}</span>
-                </div>
-            `;
+                    <span class="badge ${css}">${v.status === 'AGUARDANDO' ? 'PENDENTE' : v.status}</span>
+                </div>`;
         });
-        html += `</div>`;
-        container.innerHTML += html;
+        container.innerHTML += html + `</div>`;
     });
 }
 
 function atualizarSelects() {
-    const selEmpresa = document.getElementById('select-empresa-cadastro');
-    const selVeiculo = document.getElementById('select-veiculo-checklist');
-    
-    selEmpresa.innerHTML = '<option value="">Selecione a Empresa</option>';
-    empresas.forEach(e => selEmpresa.innerHTML += `<option value="${e}">${e}</option>`);
-
-    selVeiculo.innerHTML = '<option value="">Selecione o Veículo...</option>';
-    caminhoes.forEach(c => selVeiculo.innerHTML += `<option value="${c.placa}">${c.placa} - ${c.descricao}</option>`);
+    const sE = document.getElementById('select-empresa-cadastro');
+    const sV = document.getElementById('select-veiculo-checklist');
+    sE.innerHTML = '<option value="">Selecione a Unidade</option>';
+    empresas.forEach(e => sE.innerHTML += `<option value="${e}">${e}</option>`);
+    sV.innerHTML = '<option value="">Selecione o Veículo...</option>';
+    caminhoes.forEach(c => sV.innerHTML += `<option value="${c.placa}">${c.placa}</option>`);
 }
-
-function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    document.getElementById('screen-' + screenId).style.display = 'block';
-    document.querySelectorAll('.nav-item, .nav-link').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('sidebar').classList.remove('active');
-    lucide.createIcons();
-}
-
-document.getElementById('menu-toggle').onclick = () => document.getElementById('sidebar').classList.toggle('active');

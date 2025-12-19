@@ -17,11 +17,18 @@ header { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); padding
 .header-content { display: flex; justify-content: space-between; align-items: center; }
 .logo { font-size: 1.3rem; font-weight: 700; }
 .logo b { color: var(--primary); }
-.icon-btn { background: none; border: none; color: white; font-size: 1.2rem; }
 
-.bottom-nav { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 70px; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(15px); display: flex; justify-content: space-around; align-items: center; border-radius: 20px; border: 1px solid var(--glass); z-index: 1000; }
+.user-badge { font-size: 0.75rem; background: var(--glass); padding: 6px 12px; border-radius: 30px; display: flex; align-items: center; gap: 6px; color: var(--text-muted); border: 1px solid var(--glass); }
+
+.bottom-nav { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 70px; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(15px); display: flex; justify-content: space-around; align-items: center; border-radius: 20px; border: 1px solid var(--glass); z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .nav-item { border: none; background: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; cursor: pointer; }
 .nav-item.active { color: var(--primary); transform: translateY(-3px); }
+
+.screen-header { padding: 20px; }
+.hint { font-size: 0.75rem; color: var(--accent); margin-left: 20px; margin-top: -10px; font-weight: 600; }
+
+.search-container { padding: 0 20px 15px; }
+.search-container input { width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--glass); border-radius: 10px; color: white; }
 
 .question-card { background: var(--surface); margin: 15px; padding: 18px; border-radius: 18px; border: 1px solid var(--glass); }
 .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -36,20 +43,20 @@ input[type="radio"] { display: none; }
 .badge-bloqueado { background: rgba(244, 63, 94, 0.2); color: var(--danger); }
 .badge-pendente { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
 
-.veiculo-item { background: var(--surface); padding: 15px; border-radius: 12px; margin: 8px 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass); }
+.veiculo-item { background: var(--surface); padding: 15px; border-radius: 12px; margin: 8px 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass); transition: 0.2s; }
+.action-card { cursor: pointer; border-left: 4px solid var(--accent); }
+.action-card:active { transform: scale(0.98); background: #2d3748; }
+
 .veiculo-info b { font-size: 1rem; color: white; display: block; }
-.veiculo-info small { color: var(--text-muted); font-size: 0.8rem; }
-.placas-container { font-size: 0.75rem; color: var(--accent); margin-top: 4px; display: block; }
+.veiculo-info span { color: var(--text-muted); font-size: 0.8rem; }
+.historico-mini { font-size: 0.65rem; color: var(--warning); margin-top: 4px; }
 
 .empresa-title { padding: 10px 20px; font-size: 0.8rem; font-weight: 800; color: var(--accent); text-transform: uppercase; }
 .form-group { padding: 0 20px 15px; display: flex; flex-direction: column; gap: 8px; }
-input, select { background: #0f172a; border: 1px solid #334155; padding: 14px; border-radius: 12px; color: white; font-size: 1rem; outline: none; }
-input:focus { border-color: var(--accent); }
+input, select, textarea { background: #0f172a; border: 1px solid #334155; padding: 14px; border-radius: 12px; color: white; font-size: 1rem; outline: none; width: 100%; }
+textarea { resize: none; font-family: inherit; }
 
 .btn-primary { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 15px; margin: 15px; width: calc(100% - 30px); font-weight: bold; font-size: 1rem; cursor: pointer; }
 .btn-secondary { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; }
 
-#sidebar { position: fixed; left: -280px; width: 280px; height: 100%; background: var(--surface); z-index: 1100; transition: 0.4s; padding: 20px; border-right: 1px solid var(--glass); }
-#sidebar.active { left: 0; }
-.nav-link { display: flex; align-items: center; gap: 12px; color: white; text-decoration: none; padding: 12px; border-radius: 10px; margin-bottom: 5px; }
-.nav-link.active { background: var(--glass); color: var(--primary); }
+.separator { border: 0; border-top: 1px solid var(--glass); margin: 20px; }

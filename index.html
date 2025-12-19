@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BioCheck - Gestão Canavieira</title>
+    <title>SSMA - BEL | Gestão de Segurança</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -11,39 +11,44 @@
 
     <header>
         <div class="header-content">
-            <span class="logo">Bio<b>Check</b></span>
-            <button id="menu-toggle" class="icon-btn"><i data-lucide="menu"></i></button>
+            <span class="logo">SSMA - <b>BEL</b></span>
+            <div class="user-badge"><i data-lucide="user"></i> TÉCNICO BEL</div>
         </div>
     </header>
-
-    <aside id="sidebar">
-        <div class="sidebar-info">
-            <div class="avatar">ADM</div>
-            <p>Operador Logístico</p>
-        </div>
-        <nav>
-            <a href="#" class="nav-link active" onclick="showScreen('home')"><i data-lucide="layout-dashboard"></i> Checklist</a>
-            <a href="#" class="nav-link" onclick="showScreen('frota')"><i data-lucide="truck"></i> Frota</a>
-            <a href="#" class="nav-link" onclick="showScreen('cadastro')"><i data-lucide="plus-circle"></i> Cadastros</a>
-        </nav>
-    </aside>
 
     <main id="main-content">
         <section id="screen-home" class="screen">
             <div class="screen-header">
-                <h2>Checklist Diário</h2>
+                <h2>Inspeção de Veículo</h2>
                 <select id="select-veiculo-checklist">
                     <option value="">Selecione o Veículo...</option>
                 </select>
             </div>
             <form id="checklist-form">
                 <div id="questions-container"></div>
+                
+                <div class="form-group" style="padding: 15px;">
+                    <label>Observações do Técnico</label>
+                    <textarea id="obs-checklist" placeholder="Descreva irregularidades se houver..." rows="3"></textarea>
+                </div>
+
                 <div class="status-card">
-                    <span>Resultado da Vistoria:</span>
+                    <span>Resultado:</span>
                     <div id="status-badge" class="badge badge-pendente">AGUARDANDO</div>
                 </div>
-                <button type="submit" class="btn-primary">Finalizar e Atualizar Status</button>
+                <button type="submit" class="btn-primary">Finalizar Registro</button>
             </form>
+        </section>
+
+        <section id="screen-frota" class="screen" style="display:none;">
+            <div class="screen-header">
+                <h2>Status da Frota</h2>
+                <div class="search-container">
+                    <input type="text" id="search-frota" placeholder="Buscar placa..." onkeyup="renderFrota()">
+                </div>
+                <p class="hint">Clique no veículo para nova inspeção</p>
+            </div>
+            <div id="frota-container"></div>
         </section>
 
         <section id="screen-cadastro" class="screen" style="display:none;">
@@ -52,56 +57,45 @@
             </div>
             
             <div class="form-group">
-                <label>Nova Empresa</label>
-                <input type="text" id="nome-empresa" placeholder="Ex: Usina Delta">
-                <button class="btn-secondary" onclick="cadastrarEmpresa()">Salvar Empresa</button>
+                <label>Nova Unidade</label>
+                <input type="text" id="nome-empresa" placeholder="Ex: Unidade Belém">
+                <button class="btn-secondary" onclick="cadastrarEmpresa()">Salvar Unidade</button>
             </div>
 
-            <hr style="border: 0; border-top: 1px solid var(--glass); margin: 20px;">
+            <hr class="separator">
 
             <div class="form-group">
-                <label>Novo Caminhão</label>
-                <input type="text" id="desc-caminhao" placeholder="Descrição (Ex: Volvo FH 540)">
+                <label>Novo Veículo</label>
+                <input type="text" id="desc-caminhao" placeholder="Descrição (Ex: Volvo FH)">
                 <select id="tipo-caminhao" onchange="togglePlacasExtras()">
-                    <option value="Simples">Caminhão Simples (1 Placa)</option>
+                    <option value="Simples">Simples (1 Placa)</option>
                     <option value="Rodotrem">Rodotrem (3 Placas)</option>
-                    <option value="Treminhão">Treminhão (3 Placas)</option>
                 </select>
                 
-                <input type="text" id="placa-caminhao" placeholder="Placa do Cavalo/Caminhão">
-                
+                <input type="text" id="placa-caminhao" placeholder="Placa Principal">
                 <div id="campos-placas-extras" style="display:none; flex-direction: column; gap: 8px;">
-                    <input type="text" id="placa-reboque-1" placeholder="Placa Reboque 1">
-                    <input type="text" id="placa-reboque-2" placeholder="Placa Reboque 2">
+                    <input type="text" id="placa-reboque-1" placeholder="Reboque 1">
+                    <input type="text" id="placa-reboque-2" placeholder="Reboque 2">
                 </div>
 
-                <select id="select-empresa-cadastro">
-                    <option value="">Selecione a Empresa</option>
-                </select>
+                <select id="select-empresa-cadastro"></select>
                 <button class="btn-secondary" onclick="cadastrarCaminhao()">Salvar Veículo</button>
             </div>
-        </section>
-
-        <section id="screen-frota" class="screen" style="display:none;">
-            <div class="screen-header">
-                <h2>Minha Frota</h2>
-            </div>
-            <div id="frota-container"></div>
         </section>
     </main>
 
     <footer class="bottom-nav">
-        <button class="nav-item active" onclick="showScreen('home')">
+        <button class="nav-item active" id="nav-home" onclick="showScreen('home')">
             <i data-lucide="clipboard-check"></i>
             <span>Checklist</span>
         </button>
-        <button class="nav-item" onclick="showScreen('frota')">
+        <button class="nav-item" id="nav-frota" onclick="showScreen('frota')">
             <i data-lucide="truck"></i>
             <span>Frota</span>
         </button>
-        <button class="nav-item" onclick="showScreen('cadastro')">
+        <button class="nav-item" id="nav-cadastro" onclick="showScreen('cadastro')">
             <i data-lucide="settings"></i>
-            <span>Cadastros</span>
+            <span>Ajustes</span>
         </button>
     </footer>
 
