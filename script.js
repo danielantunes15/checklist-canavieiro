@@ -1,19 +1,32 @@
 lucide.createIcons();
 
+// Perguntas padrão para o sistema
+const perguntasPadrao = [
+    "Sistema de Freios", 
+    "Iluminação/Sinalização", 
+    "Condição dos Pneus", 
+    "Nível de Fluidos", 
+    "Itens de Segurança", 
+    "Vazamentos Visíveis"
+];
+
 const Storage = {
     get: (key, defaultVal = []) => JSON.parse(localStorage.getItem(key)) || defaultVal,
     set: (key, data) => localStorage.setItem(key, JSON.stringify(data))
 };
 
+// Carrega dados ou usa os padrões
 let empresas = Storage.get('ssma_empresas');
 let caminhoes = Storage.get('ssma_caminhoes');
-let perguntas = Storage.get('ssma_perguntas', [
-    "Sistema de Freios", "Iluminação/Sinalização", "Condição Pneus", 
-    "Nível de Fluidos", "Itens de Segurança", "Vazamentos"
-]);
+let perguntas = Storage.get('ssma_perguntas');
+
+// Se não houver perguntas salvas, carrega as pré-definidas
+if (perguntas.length === 0) {
+    perguntas = [...perguntasPadrao];
+    Storage.set('ssma_perguntas', perguntas);
+}
 
 // --- NAVEGAÇÃO ---
-
 document.getElementById('btn-cadastro-toggle').onclick = (e) => {
     e.stopPropagation();
     document.getElementById('submenu-cadastro').classList.toggle('active');
@@ -43,8 +56,7 @@ function showScreen(screenId) {
     lucide.createIcons();
 }
 
-// --- LOGICA DE DADOS ---
-
+// --- GESTÃO DE DADOS ---
 function cadastrarPergunta() {
     const txt = document.getElementById('nova-pergunta').value.trim();
     if(!txt) return;
@@ -203,6 +215,7 @@ function atualizarSelects() {
     }
 }
 
+// Inicialização total
 atualizarSelects();
 renderFrota();
 renderQuestions();
