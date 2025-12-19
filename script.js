@@ -1,148 +1,84 @@
 lucide.createIcons();
 
-const perguntasPadrao = [
-    "Sistema de Freios", "Iluminação/Sinalização", "Condição dos Pneus", 
-    "Nível de Fluidos", "Itens de Segurança", "Vazamentos Visíveis"
-];
-
 const Storage = {
-    get: (key, defaultVal = []) => JSON.parse(localStorage.getItem(key)) || defaultVal,
-    set: (key, data) => localStorage.setItem(key, JSON.stringify(data))
+    get: (key, def = []) => JSON.parse(localStorage.getItem(key)) || def,
+    set: (key, val) => localStorage.setItem(key, JSON.stringify(val))
 };
 
 let empresas = Storage.get('ssma_empresas');
 let caminhoes = Storage.get('ssma_caminhoes');
-let perguntas = Storage.get('ssma_perguntas');
-
-if (perguntas.length === 0) {
-    perguntas = [...perguntasPadrao];
-    Storage.set('ssma_perguntas', perguntas);
-}
+let perguntas = Storage.get('ssma_perguntas', ["Sistema de Freios", "Iluminação/Sinalização", "Pneus", "Nível de Fluidos", "Segurança"]);
+let config = Storage.get('ssma_config', { tecnico: "TÉCNICO BEL" });
 
 // --- NAVEGAÇÃO ---
 document.getElementById('btn-cadastro-toggle').onclick = (e) => {
     e.stopPropagation();
     document.getElementById('submenu-cadastro').classList.toggle('active');
 };
-
 document.onclick = () => document.getElementById('submenu-cadastro').classList.remove('active');
+document.getElementById('btn-config-user').onclick = () => showScreen('config');
 
-function showScreen(screenId) {
+function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    document.getElementById('screen-' + screenId).style.display = 'block';
-    document.getElementById('submenu-cadastro').classList.remove('active');
+    document.getElementById('screen-' + id).style.display = 'block';
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     
-    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-    
-    if(screenId.startsWith('cad-')) {
-        document.getElementById('btn-cadastro-toggle').classList.add('active');
-    } else {
-        const activeNav = document.getElementById('nav-' + screenId);
-        if(activeNav) activeNav.classList.add('active');
+    if(id.startsWith('cad-')) document.getElementById('btn-cadastro-toggle').classList.add('active');
+    else if(document.getElementById('nav-'+id)) document.getElementById('nav-'+id).classList.add('active');
+
+    if(id === 'home') renderQuestions();
+    if(id === 'frota') renderFrota();
+    if(id === 'cad-perguntas') renderListaPerguntas();
+    if(id === 'cad-empresas') renderListaEmpresas();
+    lucide.createIcons();
+}
+
+// --- DADOS ---
+function salvarPerfil() {
+    const nome = document.getElementById('input-tech-name').value.trim();
+    if(nome) {
+        config.tecnico = nome.toUpperCase();
+        Storage.set('ssma_config', config);
+        document.getElementById('display-name').textContent = config.tecnico;
+        alert("Perfil salvo!");
     }
-
-    if(screenId === 'home') renderQuestions();
-    if(screenId === 'cad-perguntas') renderListaPerguntas();
-    if(screenId === 'cad-empresas') renderListaEmpresas();
-    if(screenId === 'frota') renderFrota();
-    
-    lucide.createIcons();
-}
-
-// --- GESTÃO DE DADOS ---
-function cadastrarPergunta() {
-    const txt = document.getElementById('nova-pergunta').value.trim();
-    if(!txt) return;
-    perguntas.push(txt);
-    Storage.set('ssma_perguntas', perguntas);
-    document.getElementById('nova-pergunta').value = "";
-    renderListaPerguntas();
-}
-
-function renderListaPerguntas() {
-    const container = document.getElementById('lista-perguntas-edit');
-    container.innerHTML = perguntas.map((p, i) => `
-        <div class="veiculo-item"><span>${p}</span>
-        <button onclick="removerPergunta(${i})" class="btn-delete"><i data-lucide="trash-2"></i></button></div>
-    `).join('');
-    lucide.createIcons();
-}
-
-function removerPergunta(i) {
-    perguntas.splice(i, 1);
-    Storage.set('ssma_perguntas', perguntas);
-    renderListaPerguntas();
-}
-
-function cadastrarEmpresa() {
-    const nome = document.getElementById('nome-empresa').value.trim();
-    if (!nome) return;
-    empresas.push(nome);
-    Storage.set('ssma_empresas', empresas);
-    document.getElementById('nome-empresa').value = "";
-    renderListaEmpresas();
-    atualizarSelects();
-}
-
-function renderListaEmpresas() {
-    const container = document.getElementById('lista-empresas-edit');
-    container.innerHTML = empresas.map((e, i) => `
-        <div class="veiculo-item"><span>${e}</span>
-        <button onclick="removerEmpresa(${i})" class="btn-delete"><i data-lucide="trash-2"></i></button></div>
-    `).join('');
-    lucide.createIcons();
-}
-
-function removerEmpresa(i) {
-    empresas.splice(i, 1);
-    Storage.set('ssma_empresas', empresas);
-    renderListaEmpresas();
-    atualizarSelects();
 }
 
 function cadastrarCaminhao() {
     const placa = document.getElementById('placa-caminhao').value.toUpperCase().trim();
-    const empresa = document.getElementById('select-empresa-cadastro').value;
-    if (!placa || !empresa) return alert("Preencha placa e unidade");
+    const emp = document.getElementById('select-empresa-cadastro').value;
+    if(!placa || !emp) return alert("Preencha Placa e Unidade");
 
     caminhoes.push({
-        placa, empresa, status: 'AGUARDANDO',
-        descricao: document.getElementById('desc-caminhao').value,
-        dataUltimaVistoria: '', ultimoTecnico: ''
+        placa, empresa: emp, status: 'AGUARDANDO',
+        desc: document.getElementById('desc-caminhao').value,
+        data: '', tecnico: ''
     });
     Storage.set('ssma_caminhoes', caminhoes);
     atualizarSelects();
-    alert("Caminhão salvo!");
+    alert("Veículo salvo!");
 }
 
 function renderQuestions() {
     const container = document.getElementById('questions-container');
-    container.innerHTML = "";
-    perguntas.forEach((p, i) => {
-        const div = document.createElement('div');
-        div.className = 'question-card';
-        div.innerHTML = `<p><strong>${p}</strong></p>
+    container.innerHTML = perguntas.map((p, i) => `
+        <div class="question-card">
+            <p><strong>${p}</strong></p>
             <div class="options">
                 <input type="radio" name="q${i}" id="q${i}c" value="C" checked>
-                <label for="q${i}c" class="lbl-c">Conforme</label>
+                <label for="q${i}c" class="lbl-c">CONFORME</label>
                 <input type="radio" name="q${i}" id="q${i}nc" value="NC">
-                <label for="q${i}nc" class="lbl-nc">Não Conf.</label>
-            </div>`;
-        container.appendChild(div);
-    });
+                <label for="q${i}nc" class="lbl-nc">NÃO CONF.</label>
+            </div>
+        </div>
+    `).join('');
 }
 
-// LOGICA DE STATUS AUTOMÁTICO
 document.getElementById('checklist-form').addEventListener('change', () => {
     const ncs = document.querySelectorAll('input[value="NC"]:checked').length;
     const badge = document.getElementById('status-badge');
-    if (ncs > 0) {
-        badge.textContent = "BLOQUEADO";
-        badge.className = "badge badge-bloqueado";
-    } else {
-        badge.textContent = "LIBERADO";
-        badge.className = "badge badge-liberado";
-    }
+    badge.textContent = ncs > 0 ? "BLOQUEADO" : "LIBERADO";
+    badge.className = ncs > 0 ? "badge badge-bloqueado" : "badge badge-liberado";
 });
 
 function renderFrota() {
@@ -161,10 +97,10 @@ function renderFrota() {
                 <div class="veiculo-item action-card" onclick="iniciarChecklist('${v.placa}')">
                     <div class="veiculo-info">
                         <b>${v.placa}</b>
-                        <span>${v.descricao}</span>
-                        ${v.dataUltimaVistoria ? `<div class="historico-mini">${v.dataUltimaVistoria}</div>` : ''}
+                        <small>${v.desc || ''}</small>
+                        ${v.data ? `<div class="historico-mini">${v.data}</div>` : ''}
                     </div>
-                    <span class="badge ${css}">${v.status === 'AGUARDANDO' ? 'PENDENTE' : v.status}</span>
+                    <span class="badge ${css}">${v.status}</span>
                 </div>`;
         });
         container.innerHTML += html + `</div>`;
@@ -174,9 +110,9 @@ function renderFrota() {
 function iniciarChecklist(placa) {
     const v = caminhoes.find(c => c.placa === placa);
     document.getElementById('modal-body').innerHTML = `
-        <h3>Nova Inspeção</h3>
+        <h3 style="margin-top:0;">Nova Inspeção</h3>
         <p>Veículo: <b>${placa}</b></p>
-        <div class="modal-info-box">Última: ${v.dataUltimaVistoria || 'Nenhuma'}<br>Responsável: ${v.ultimoTecnico || 'BEL'}</div>
+        <div class="modal-info-box">Última: ${v.data || 'Nenhuma'}<br>Técnico: ${v.tecnico || 'BEL'}</div>
     `;
     document.getElementById('modal-confirm').style.display = 'flex';
     document.getElementById('btn-modal-confirm').onclick = () => {
@@ -198,31 +134,57 @@ document.getElementById('checklist-form').onsubmit = (e) => {
     const idx = caminhoes.findIndex(c => c.placa === placa);
 
     if (idx !== -1) {
+        const dataH = new Date().toLocaleString('pt-BR');
         caminhoes[idx].status = res;
-        caminhoes[idx].dataUltimaVistoria = new Date().toLocaleString('pt-BR');
-        caminhoes[idx].ultimoTecnico = "TÉCNICO BEL";
+        caminhoes[idx].data = dataH;
+        caminhoes[idx].tecnico = config.tecnico;
         Storage.set('ssma_caminhoes', caminhoes);
-        alert("Inspeção Registrada!");
+        
+        gerarPDF(placa, res, dataH);
+        
+        alert("Inspeção Salva!");
         e.target.reset();
-        document.getElementById('status-badge').className = "badge badge-pendente";
-        document.getElementById('status-badge').textContent = "AGUARDANDO";
         showScreen('frota');
     }
 };
 
+function gerarPDF(placa, status, data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text("SSMA - RELATÓRIO DE INSPEÇÃO", 10, 10);
+    doc.text(`Veículo: ${placa}`, 10, 20);
+    doc.text(`Status: ${status}`, 10, 30);
+    doc.text(`Data: ${data}`, 10, 40);
+    doc.text(`Técnico: ${config.tecnico}`, 10, 50);
+    doc.save(`inspecao_${placa}.pdf`);
+}
+
+// Funções Auxiliares (Mesma lógica do original)
+function cadastrarEmpresa() {
+    const n = document.getElementById('nome-empresa').value.trim();
+    if(n){ empresas.push(n); Storage.set('ssma_empresas', empresas); renderListaEmpresas(); atualizarSelects(); }
+}
+function renderListaEmpresas() {
+    document.getElementById('lista-empresas-edit').innerHTML = empresas.map((e,i)=>`<div class="veiculo-item"><span>${e}</span><button onclick="empresas.splice(${i},1);Storage.set('ssma_empresas',empresas);renderListaEmpresas()" class="btn-delete"><i data-lucide="trash-2"></i></button></div>`).join('');
+    lucide.createIcons();
+}
+function cadastrarPergunta() {
+    const p = document.getElementById('nova-pergunta').value.trim();
+    if(p){ perguntas.push(p); Storage.set('ssma_perguntas', perguntas); renderListaPerguntas(); }
+}
+function renderListaPerguntas() {
+    document.getElementById('lista-perguntas-edit').innerHTML = perguntas.map((p,i)=>`<div class="veiculo-item"><span>${p}</span><button onclick="perguntas.splice(${i},1);Storage.set('ssma_perguntas',perguntas);renderListaPerguntas()" class="btn-delete"><i data-lucide="trash-2"></i></button></div>`).join('');
+    lucide.createIcons();
+}
 function atualizarSelects() {
     const sE = document.getElementById('select-empresa-cadastro');
     const sV = document.getElementById('select-veiculo-checklist');
-    if(sE) {
-        sE.innerHTML = '<option value="">Unidade...</option>';
-        empresas.forEach(e => sE.innerHTML += `<option value="${e}">${e}</option>`);
-    }
-    if(sV) {
-        sV.innerHTML = '<option value="">Selecione o Veículo...</option>';
-        caminhoes.forEach(c => sV.innerHTML += `<option value="${c.placa}">${c.placa}</option>`);
-    }
+    if(sE) sE.innerHTML = '<option value="">Unidade...</option>' + empresas.map(e=>`<option value="${e}">${e}</option>`).join('');
+    if(sV) sV.innerHTML = '<option value="">Veículo...</option>' + caminhoes.map(c=>`<option value="${c.placa}">${c.placa}</option>`).join('');
 }
 
+// Inicialização
+document.getElementById('display-name').textContent = config.tecnico;
+document.getElementById('input-tech-name').value = config.tecnico;
 atualizarSelects();
-renderFrota();
-renderQuestions();
+showScreen('home');
