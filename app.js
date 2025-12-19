@@ -9,7 +9,6 @@ const App = {
     },
 
     bindEvents() {
-        // Menu Cadastro
         document.getElementById('btn-cadastro-toggle').onclick = (e) => {
             e.stopPropagation();
             document.getElementById('submenu-cadastro').classList.toggle('active');
@@ -17,7 +16,6 @@ const App = {
         document.onclick = () => document.getElementById('submenu-cadastro').classList.remove('active');
         document.getElementById('btn-config-user').onclick = () => UI.showScreen('config');
 
-        // Status em tempo real
         document.getElementById('checklist-form').onchange = () => {
             const hasNC = document.querySelector('input[value="NC"]:checked');
             const badge = document.getElementById('status-badge');
@@ -25,7 +23,6 @@ const App = {
             badge.className = `badge ${hasNC ? 'badge-bloqueado' : 'badge-liberado'}`;
         };
 
-        // Submit
         document.getElementById('checklist-form').onsubmit = (e) => this.finalizarChecklist(e);
     },
 
@@ -35,7 +32,7 @@ const App = {
             Storage.data.config.tecnico = nome.toUpperCase();
             Storage.save();
             document.getElementById('display-name').textContent = Storage.data.config.tecnico;
-            alert("Perfil salvo!");
+            alert("Perfil atualizado!");
         }
     },
 
@@ -109,7 +106,6 @@ const App = {
         const placa = document.getElementById('select-veiculo-checklist').value;
         if (!placa) return alert("Selecione um veículo");
 
-        // Validação de obrigatórios
         let pendente = false;
         Storage.data.perguntas.forEach((p, i) => {
             if(p.obrigatoria && !document.querySelector(`input[name="q${i}"]:checked`)) pendente = true;
@@ -127,23 +123,18 @@ const App = {
             Storage.data.caminhoes[idx].tecnico = Storage.data.config.tecnico;
             Storage.save();
             
-            this.gerarPDF(placa, res, dataH);
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("SSMA - RELATÓRIO", 10, 10);
+            doc.text(`Veículo: ${placa} | Status: ${res}`, 10, 20);
+            doc.text(`Data: ${dataH}`, 10, 30);
+            doc.save(`checklist_${placa}.pdf`);
             
             alert("Inspeção Salva!");
             e.target.reset();
             UI.showScreen('frota');
         }
-    },
-
-    gerarPDF(placa, status, data) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("SSMA - RELATÓRIO", 10, 10);
-        doc.text(`Veículo: ${placa} | Status: ${status}`, 10, 20);
-        doc.text(`Técnico: ${Storage.data.config.tecnico} | Data: ${data}`, 10, 30);
-        doc.save(`checklist_${placa}.pdf`);
     }
 };
 
-// Start
 App.init();

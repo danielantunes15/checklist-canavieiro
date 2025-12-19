@@ -64,7 +64,7 @@ const UI = {
         document.getElementById('lista-perguntas-edit').innerHTML = Storage.data.perguntas.map((p, i) => `
             <div class="veiculo-item">
                 <div style="display:flex; flex-direction:column;">
-                    <span>${p.texto}</span>
+                    <span>${p.texto || "Erro de dados"}</span>
                     <small style="color:var(--text-muted)">${p.obrigatoria ? 'Obrigatória' : 'Opcional'}</small>
                 </div>
                 <button onclick="App.removerPergunta(${i})" class="btn-delete"><i data-lucide="trash-2"></i></button>

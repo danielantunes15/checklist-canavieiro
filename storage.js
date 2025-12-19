@@ -2,7 +2,6 @@ const Storage = {
     get: (key, def = []) => JSON.parse(localStorage.getItem(key)) || def,
     set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
     
-    // Dados globais
     data: {
         empresas: [],
         caminhoes: [],
@@ -14,11 +13,22 @@ const Storage = {
         this.data.empresas = this.get('ssma_empresas');
         this.data.caminhoes = this.get('ssma_caminhoes');
         this.data.config = this.get('ssma_config', { tecnico: "TÉCNICO BEL" });
-        this.data.perguntas = this.get('ssma_perguntas', [
-            { texto: "Sistema de Freios", obrigatoria: true },
-            { texto: "Iluminação/Sinalização", obrigatoria: true },
-            { texto: "Pneus", obrigatoria: true }
-        ]);
+        
+        let salvas = this.get('ssma_perguntas', []);
+
+        // CORREÇÃO: Se as perguntas antigas forem apenas strings, ou se estiver vazio, limpa e carrega o padrão
+        if (salvas.length === 0 || typeof salvas[0] === 'string') {
+            this.data.perguntas = [
+                { texto: "Sistema de Freios", obrigatoria: true },
+                { texto: "Iluminação/Sinalização", obrigatoria: true },
+                { texto: "Condição dos Pneus", obrigatoria: true },
+                { texto: "Nível de Fluidos", obrigatoria: true },
+                { texto: "Itens de Segurança", obrigatoria: true }
+            ];
+            this.save();
+        } else {
+            this.data.perguntas = salvas;
+        }
     },
 
     save() {
